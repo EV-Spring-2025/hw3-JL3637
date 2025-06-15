@@ -1,28 +1,54 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/SdXSjEmH)
 # EV-HW3: PhysGaussian
+### B10902033 林祐辰
 
-This homework is based on the recent CVPR 2024 paper [PhysGaussian](https://github.com/XPandora/PhysGaussian/tree/main), which introduces a novel framework that integrates physical constraints into 3D Gaussian representations for modeling generative dynamics.
+## Part 1
 
-You are **not required** to implement training from scratch. Instead, your task is to set up the environment as specified in the official repository and run the simulation scripts to observe and analyze the results.
+The two materials I chose are jelly and metal, and I simulated them on the Ficus model. The simulation videos are in the `part_1_video`, and the configuration files I used are in `config/part_1`. A small finding in this part is that, to simulate metal material, the parameter `yield_stress` needs to be added to the config.
 
+## Part 2
 
-## Getting the Code from the Official PhysGaussian GitHub Repository
-Download the official codebase using the following command:
-```
-git clone https://github.com/XPandora/PhysGaussian.git
-```
+For Part 2, I tried adjusting four parameters (`n_grid`, `substeps`, `grid_v_damping_scale`, and `softening`) on the Ficus model. However, only two of them had a noticeable effect: `substeps` and `grid_v_damping_scale`. I think this may due to the pretrained Ficus model not being configured to use the other two parameters. Therefore, I conducted experiments by adjusting `substep_dt` and `grid_v_damping_scale`. The simulation videos are in the `part_2_video`, and the configuration files I used are in `config/part_2`.
 
+1. `substep_dt` (stadard: `1e-4`, tested: `5e-5`, `8e-5`)
 
-## Environment Setup
-Navigate to the "PhysGaussian" directory and follow the instructions under the "Python Environment" section in the official README to set up the environment.
+    Psnr score:
+    1. Jelly_5e-5: `22.53` dB
+    2. Jelly_8e-5: `25.19` dB
+    3. Metal_5e-5: `15.64` dB
+    4. Metal_8e-5: `17.68` dB
+    
+    Key takeaways & finding:
 
+    Visually, a larger substep_dt leads to greater movement of the Ficus in the simulation video, likely due to increased numerical integration per step, allowing more dynamics to unfold.
 
-## Running the Simulation
-Follow the "Quick Start" section and execute the simulation scripts as instructed. Make sure to verify your outputs and understand the role of physics constraints in the generated dynamics.
+2. `grid_v_damping_scale` (stadard: `0.9999`, tested: `0.999`, `0.9995`)
 
+    Psnr score:
+    1. Jelly_0.999: `22.13` dB
+    2. Jelly_0.9995: `22.49` dB
+    3. Metal_0.999: `15.31` dB
+    4. Metal_0.9995: `17.80` dB
 
-## Homework Instructions
-Please complete Part 1–2 as described in the [Google Slides](https://docs.google.com/presentation/d/13JcQC12pI8Wb9ZuaVV400HVZr9eUeZvf7gB7Le8FRV4/edit?usp=sharing).
+    Key takeaways & finding:
+
+    This parameter controls the velocity damping in the grid; a larger value retains more velocity, resulting in more movement in the simulation.The visual effect is similar to substep_dt, higher values produce livelier, more dynamic motion in the ficus, potentially improving the perceptual realism but also increasing numerical sensitivity.
+
+### Bonus part answer:
+
+Design a learning-based inverse framework:
+
+1. Input: Observed video of material behavior (e.g., deformation, motion).
+2. Feature Extraction: Use a pretrained vision backbone (e.g., ResNet, ViT) to extract spatiotemporal features.
+3. Material Parameter Regressor: Feed features into a neural network that regresses simulation parameters (e.g., Young’s modulus, damping, friction).
+4. Simulation Loop: Plug predicted parameters into a differentiable physics simulator (e.g., Taichi or DiffTaichi).
+5. Loss Function: Compute photometric or perceptual loss between simulated and real video.
+6. Optimization: Train end-to-end with supervised or self-supervised learning on a dataset of known material behaviors.
+
+This enables parameter inference for unseen materials from real-world observations.
+
+## Youtube video link:
+
+https://youtu.be/cnugiYee5Dw
 
 
 # Reference
